@@ -1,0 +1,255 @@
+﻿<Window x:Class="ATS.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:local="clr-namespace:ATS" 
+        xmlns:converters="clr-namespace:ATS.Views.Converters"
+        xmlns:models="clr-namespace:ATS.Models"
+        xmlns:viewmodels="clr-namespace:ATS.ViewModels" 
+        d:DataContext="{d:DesignInstance Type=viewmodels:AbonentViewModel}"
+        mc:Ignorable="d"
+        Closing="Window_Closing"
+        Title="ATS" MinHeight="450" MinWidth="1300">
+    <Window.Resources>
+        <Style x:Key="Validation" TargetType="{x:Type FrameworkElement}">
+            <Style.Triggers>
+                <Trigger Property="Validation.HasError" Value="true">
+                    <Setter Property="ToolTip" Value="{Binding Path=(Validation.Errors)[0].ErrorContent, RelativeSource={x:Static RelativeSource.Self}}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="7 2 7 2" />
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+            <GroupBox x:FieldModifier="private" x:Name="AbonentGB" Grid.Column="0" Grid.Row="0" Header="Абонент">
+                <GroupBox.Resources>
+                    <Style  x:Key="baseStyle" TargetType="{x:Type FrameworkElement}" BasedOn="{StaticResource Validation}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Path=Abonent}" Value="{x:Null}">
+                                <Setter Property="IsEnabled" Value="False" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </GroupBox.Resources>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition Height="0.18*" />
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" Orientation="Vertical">
+                        <TextBlock Text="Фамилия:" />
+                        <TextBox Text="{Binding Path=Abonent.Surname, Mode=TwoWay, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource baseStyle}" />
+                        <TextBlock Text="Имя:" />
+                        <TextBox Text="{Binding Path=Abonent.Name, Mode=TwoWay, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource baseStyle}" />
+                        <TextBlock Text="Отчество:" />
+                        <TextBox Text="{Binding Path=Abonent.SecondName, Mode=TwoWay, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource baseStyle}" />
+                        <TextBlock Text="Адрес:" />
+                        <TextBox Text="{Binding Path=Abonent.Address, Mode=TwoWay}" Style="{StaticResource baseStyle}" />
+                        <TextBlock Text="Льготы:" />
+                        <DataGrid x:Name="BenefitsDG" AutoGenerateColumns="False" ItemsSource="{Binding Path=Benefits}" Style="{StaticResource baseStyle}" HeadersVisibility="Column"
+                                        d:DataContext="{d:DesignInstance Type=viewmodels:BenefitsViewModel}" IsEnabled="True" CanUserAddRows="False" >
+                            <DataGrid.Resources>
+                                <ObjectDataProvider MethodName="GetValues" ObjectType="{x:Type sys:Enum}" x:Key="BenefitsTypes">
+                                    <ObjectDataProvider.MethodParameters>
+                                        <x:Type TypeName="models:BenefitsTypes" />
+                                    </ObjectDataProvider.MethodParameters>
+                                </ObjectDataProvider>
+                                <converters:BenefitsNameConverter x:Key="BenefitsNameToString" />
+                            </DataGrid.Resources>
+                            <DataGrid.Columns>
+                                <DataGridComboBoxColumn Header="Название" Width="0.8*" 
+                                                            TextBinding="{Binding Path=Name, Mode=TwoWay, UpdateSourceTrigger=LostFocus, Converter={StaticResource BenefitsNameToString}}" 
+                                                            ItemsSource="{Binding Source={StaticResource BenefitsTypes}, Mode=OneTime, Converter={StaticResource BenefitsNameToString}}" />
+                                <DataGridTextColumn Header="Скидка" Width="0.2*" Binding="{Binding Path=Discount}" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                    <StackPanel Grid.Row="1" Orientation="Vertical">
+                        <Button Grid.Column="0" Content="Добавить абонента" Margin="0 0 0 7" Command="{Binding Path=AddAbonentCommand}" />
+                        <Button Grid.Column="2" Content="Удалить абонента" Command="{Binding Path=DeleteAbonentCommand}"/>
+                    </StackPanel>
+                </Grid>
+            </GroupBox>
+            <GroupBox x:FieldModifier="private" x:Name="TelephoneGB" Grid.Column="1" Grid.Row="0" Header="Телефон"
+                            d:DataContext="{d:DesignInstance Type=viewmodels:TelephoneViewModel}">
+                <GroupBox.Resources>
+                    <Style x:Key="baseStyle" TargetType="{x:Type FrameworkElement}" BasedOn="{StaticResource Validation}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Path=SelectedTelephone}" Value="{x:Null}">
+                                <Setter Property="IsEnabled" Value="False" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </GroupBox.Resources>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Grid Margin="0 0 7 0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="Список телефонов:" TextWrapping="Wrap" />
+                        <ListBox Grid.Row="1" ItemsSource="{Binding Path=Telephones}" SelectedItem="{Binding Path=SelectedTelephone}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock>
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text" Value="{Binding Path=Number}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Path=Number}" Value="{x:Null}">
+                                                        <Setter Property="Text" Value="Не указан" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Path=Number}" Value="">
+                                                        <Setter Property="Text" Value="Не указан" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                    <Grid Grid.Column="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition Height="0.18*"/>
+                        </Grid.RowDefinitions>
+                        <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Vertical">
+                            <TextBlock Text="Номер:" />
+                            <TextBox Text="{Binding Path=SelectedTelephone.Number, Mode=TwoWay, ValidatesOnDataErrors=True, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource baseStyle}" />
+                            <TextBlock Text="Категория:" />
+                            <ComboBox SelectedItem="{Binding Path=SelectedTelephone.Category, Mode=TwoWay}" Style="{StaticResource baseStyle}">
+                                <ComboBox.ItemsSource>
+                                    <x:Array Type="{x:Type sys:String}">
+                                        <sys:String>Мобильный</sys:String>
+                                        <sys:String>Стационарный</sys:String>
+                                        <sys:String>Корпоративный</sys:String>
+                                        <sys:String>Таксофон</sys:String>
+                                    </x:Array>
+                                </ComboBox.ItemsSource>
+                            </ComboBox>
+                            <TextBlock Text="Абонентская плата:" TextWrapping="Wrap" />
+                            <TextBox Text="{Binding Path=SelectedTelephone.Fee, Mode=TwoWay}" Style="{StaticResource baseStyle}" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Orientation="Vertical">
+                            <Button Grid.Column="0" Content="Добавить телефон" Margin="0 0 0 7" Command="{Binding Path=AddTelephoneCommand}" CommandParameter="{Binding ElementName=AbonentGB, Path=DataContext.Abonent}" />
+                            <Button Grid.Column="2" Content="Удалить телефон" Command="{Binding Path=DeleteTelephoneCommand}" />
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </GroupBox>
+            <GroupBox x:FieldModifier="private" x:Name="CallGB" Grid.Column="2" Grid.Row="0" Header="Разговор"
+                            d:DataContext="{d:DesignInstance Type=viewmodels:CallViewModel}">
+                <GroupBox.Resources>
+                    <Style x:Key="baseStyle" TargetType="{x:Type FrameworkElement}" BasedOn="{StaticResource Validation}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Path=SelectedCall}" Value="{x:Null}">
+                                <Setter Property="IsEnabled" Value="False" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                    <converters:DateTimeConverter x:Key="DateTimeTo24HoursConverter" />
+                </GroupBox.Resources>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Grid Margin="0 0 7 0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="Список разговоров:" TextWrapping="Wrap" />
+                        <ListBox Grid.Row="1" ItemsSource="{Binding Path=Calls}" SelectedItem="{Binding Path=SelectedCall}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock>
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text" Value="{Binding Path=Date, Converter={StaticResource DateTimeTo24HoursConverter}}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Path=Date}" Value="{x:Null}">
+                                                        <Setter Property="Text" Value="Не указан" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Path=Date}" Value="">
+                                                        <Setter Property="Text" Value="Не указан" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                    <Grid Grid.Column="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition Height="0.18*"/>
+                        </Grid.RowDefinitions>
+                        <StackPanel Grid.Column="1" Orientation="Vertical">
+                            <TextBlock Text="Продолжительность разговора:" TextWrapping="Wrap" />
+                            <TextBox Text="{Binding Path=SelectedCall.Duration, Mode=TwoWay}" Style="{StaticResource baseStyle}" />
+                            <TextBlock Text="Категория оплаты:" TextWrapping="Wrap" />
+                            <ComboBox Text="{Binding Path=SelectedCall.PaymentCategory, Mode=TwoWay}" Style="{StaticResource baseStyle}">
+                                <ComboBox.ItemsSource>
+                                    <x:Array Type="{x:Type sys:String}">
+                                        <sys:String>Местный</sys:String>
+                                        <sys:String>Междугородний</sys:String>
+                                        <sys:String>Международный</sys:String>
+                                    </x:Array>
+                                </ComboBox.ItemsSource>
+                            </ComboBox>
+                            <TextBlock Text="Дата:" />
+                            <TextBox Text="{Binding Path=SelectedCall.Date, Mode=TwoWay, Converter={StaticResource DateTimeTo24HoursConverter}}" Style="{StaticResource baseStyle}" />
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Orientation="Vertical">
+                            <Button Grid.Column="0" Content="Добавить разговор" Margin="0 0 0 7" Command="{Binding Path=AddCallCommand}" CommandParameter="{Binding ElementName=TelephoneGB, Path=DataContext.SelectedTelephone}" />
+                            <Button Grid.Column="2" Content="Удалить разговор" Command="{Binding Path=DeleteCallCommand}" />
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </GroupBox>
+            <GroupBox Grid.ColumnSpan="3" Grid.Row="1" Padding="6,0,6,20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="0.6*" />
+                        <ColumnDefinition Width="0.4*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0"  Orientation="Horizontal" Height="22">
+                        <TextBlock Text="Получить информацию об абоненте по ФИО: " />
+                        <TextBox x:FieldModifier="private" x:Name="SearchAbonent" MinWidth="250" Margin="0 0 7 0" />
+                        <Button Content="Загрузить" Margin="0 0 7 0" Command="{Binding Path=GetAbonentCommand}" CommandParameter="{Binding ElementName=SearchAbonent, Path=Text}" />
+                        <Button Content="Сохранить" Margin="0 0 30 0" Command="{Binding Path=SaveAbonentCommand}" />
+                    </StackPanel>
+                    <StackPanel x:Name="ReportPanel" Grid.Column="1" Orientation="Horizontal"  Height="22"
+                                d:DataContext="{d:DesignInstance Type=viewmodels:ReportViewModel}">
+                        <TextBlock Text="Номер телефона: " />
+                        <TextBox MinWidth="200" Margin="0 0 7 0" Text="{Binding Path=PhoneNumber, UpdateSourceTrigger=PropertyChanged}" />
+                        <Button Content="Сформировать отчёт" Command="{Binding Path=GenerateReport}" />
+                    </StackPanel>
+                </Grid>
+            </GroupBox>
+        </Grid>
+    </Grid>
+</Window>
